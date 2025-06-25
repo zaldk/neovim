@@ -1,3 +1,7 @@
+# ARCHIVED
+
+Outgrown the Nix hype, moved to Void Linux.
+
 # Nixvim template
 
 This template gives you a good starting point for configuring nixvim standalone.
