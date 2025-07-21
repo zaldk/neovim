@@ -1,3 +1,12 @@
+local vim = vim -- supress lua-language-server from reporting it as undefined
+-- Colors (default theme in case plugins fail)
+vim.cmd.colorscheme('habamax')
+vim.cmd.hi 'Folded guibg=none ctermbg=none'
+
+-- Netrw File Explorer
+vim.g.netrw_banner = 0                             -- Do not show the banner
+vim.g.netrw_liststyle = 3                          -- Tree-like style
+
 -- Basic settings
 vim.opt.cursorline = false                         -- Highlight current line
 vim.opt.number = true                              -- Line numbers
@@ -27,6 +36,8 @@ vim.opt.completeopt = 'menuone,noinsert,noselect'  -- Completion options
 vim.opt.concealcursor = ''                         -- Don't hide cursor line markup
 vim.opt.conceallevel = 0                           -- Don't hide markup
 vim.opt.lazyredraw = true                          -- Don't redraw during macros
+vim.opt.list = true                                -- Enable usage of special symbols instead of whitespace
+vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣'} -- Symbols to use instead of whitespace
 vim.opt.matchtime = 2                              -- How long to show matching bracket
 vim.opt.pumblend = 10                              -- Popup menu transparency
 vim.opt.pumheight = 10                             -- Popup menu height
@@ -57,12 +68,12 @@ vim.opt.clipboard:append('unnamedplus')            -- Use system clipboard
 vim.opt.encoding = 'UTF-8'                         -- Set encoding
 vim.opt.errorbells = false                         -- No error bells
 vim.opt.hidden = true                              -- Allow hidden buffers
-vim.opt.iskeyword:remove('_')                      -- Do not treat underscore as part of a word
+vim.opt.iskeyword:append('-')                      -- Treat minus as part of a word
 vim.opt.modifiable = true                          -- Allow buffer modifications
 vim.opt.mouse = 'a'                                -- Enable mouse support
 vim.opt.mousescroll = 'ver:1,hor:1'                -- Mouse scrolls N lines
 vim.opt.path:append('**')                          -- include subdirectories in search
-vim.opt.selection = 'inclusive'                    -- Selection behavior
+vim.opt.selection = 'inclusive'                    -- Selection includes cursor
 vim.cmd('autocmd BufEnter * set formatoptions-=cro') -- Remove autocomment when pressing `O`
 vim.cmd('autocmd BufEnter * setlocal formatoptions-=cro')
 
@@ -98,18 +109,18 @@ vim.keymap.set('n', '<C-u>', '<C-u>zzzv', { desc = 'Half page up (centered)' })
 vim.keymap.set({ 'n', 'v' }, 'x', '"_x', { desc = 'Delete without yanking' })
 
 -- Buffer navigation
-vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = 'Next buffer' })
-vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = 'Previous buffer' })
+-- vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = 'Next buffer' })
+-- vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = 'Previous buffer' })
 
 -- Better window navigation
-vim.keymap.set('n', '<C-h>', '<C-w>h', { desc = 'Move to left window' })
-vim.keymap.set('n', '<C-j>', '<C-w>j', { desc = 'Move to bottom window' })
-vim.keymap.set('n', '<C-k>', '<C-w>k', { desc = 'Move to top window' })
-vim.keymap.set('n', '<C-l>', '<C-w>l', { desc = 'Move to right window' })
+-- vim.keymap.set('n', '<C-h>', '<C-w>h', { desc = 'Move to left window' })
+-- vim.keymap.set('n', '<C-j>', '<C-w>j', { desc = 'Move to bottom window' })
+-- vim.keymap.set('n', '<C-k>', '<C-w>k', { desc = 'Move to top window' })
+-- vim.keymap.set('n', '<C-l>', '<C-w>l', { desc = 'Move to right window' })
 
 -- Splitting & Resizing
-vim.keymap.set('n', '<leader>sv', ':vsplit<CR>', { desc = 'Split window vertically' })
-vim.keymap.set('n', '<leader>sh', ':split<CR>', { desc = 'Split window horizontally' })
+-- vim.keymap.set('n', '<leader>sv', ':vsplit<CR>', { desc = 'Split window vertically' })
+-- vim.keymap.set('n', '<leader>sh', ':split<CR>', { desc = 'Split window horizontally' })
 vim.keymap.set('n', '<C-S-Up>', ':resize +2<CR>', { desc = 'Increase window height' })
 vim.keymap.set('n', '<C-S-Down>', ':resize -2<CR>', { desc = 'Decrease window height' })
 vim.keymap.set('n', '<C-S-Left>', ':vertical resize -2<CR>', { desc = 'Decrease window width' })
@@ -126,14 +137,11 @@ vim.keymap.set('v', '<', '<gv', { desc = 'Indent left and reselect' })
 vim.keymap.set('v', '>', '>gv', { desc = 'Indent right and reselect' })
 
 -- Quick file navigation
--- vim.keymap.set('n', '<leader>e', ':Explore<CR>', { desc = 'Open file explorer' })
+-- vim.keymap.set('n', '-', ':25Lex<CR>', { desc = 'Open file explorer' })
 -- vim.keymap.set('n', '<leader>ff', ':find ', { desc = 'Find file' })
 
 -- Better J behavior
 vim.keymap.set('n', 'J', 'mzJ`z', { desc = 'Join lines and keep cursor position' })
-
--- Quick config editing
-vim.keymap.set('n', '<leader>rc', ':e ~/.config/nvim/init.lua<CR>', { desc = 'Edit config' })
 
 -- ============================================================================
 -- USEFUL FUNCTIONS
@@ -531,7 +539,7 @@ vim.api.nvim_create_autocmd('FileType', {
 -- LSP keymaps
 vim.api.nvim_create_autocmd('LspAttach', {
     callback = function(event)
-        local opts = {buffer = event.buf}
+        local opts = { buffer = event.buf }
 
         -- Navigation
         -- vim.keymap.set('n', 'gD', vim.lsp.buf.definition, opts)
@@ -540,14 +548,14 @@ vim.api.nvim_create_autocmd('LspAttach', {
         -- vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
 
         -- Information
-        vim.keymap.set('n', 'K', function() vim.lsp.buf.hover({ border = 'rounded' }) end)
+        vim.keymap.set('n', 'K', function() vim.lsp.buf.hover({ border = 'rounded' }) end, opts)
         -- vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
 
         -- Code actions
-        vim.keymap.set("n", "<F1>", "<NOP>")
-        vim.keymap.set("n", "<F2>", vim.lsp.buf.rename, { desc = "Rename Symbol [LSP]" })
-        vim.keymap.set("n", "<F3>", vim.lsp.buf.format, { desc = "Format File [LSP]" })
-        vim.keymap.set("n", "<F4>", vim.lsp.buf.code_action, { desc = "Code Actions [LSP]" })
+        vim.keymap.set("n", "<F1>", "<NOP>", opts)
+        vim.keymap.set("n", "<F2>", vim.lsp.buf.rename, opts)
+        vim.keymap.set("n", "<F3>", vim.lsp.buf.format, opts)
+        vim.keymap.set("n", "<F4>", vim.lsp.buf.code_action, opts)
 
         -- Diagnostics
         vim.keymap.set('n', '<leader>dn', vim.diagnostic.goto_next, opts)
@@ -592,9 +600,7 @@ local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
     local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
     local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
-    if vim.v.shell_error ~= 0 then
-        error('Error cloning lazy.nvim:\n' .. out)
-    end
+    if vim.v.shell_error ~= 0 then error('Error cloning lazy.nvim:\n' .. out) end
 end
 vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
@@ -602,37 +608,40 @@ require('lazy').setup({
         'folke/tokyonight.nvim',
         priority = 1000,
         init = function()
-            vim.cmd.colorscheme('tokyonight-night') -- habamax also works
-            vim.cmd.hi 'Comment gui=none'
-            vim.cmd.hi 'Normal guibg=none ctermbg=none'
-            vim.cmd.hi 'Folded guibg=none ctermbg=none'
-            vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
-            vim.api.nvim_set_hl(0, "NormalNC", { bg = "none" })
-            vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "none" })
+            vim.cmd.colorscheme('tokyonight-night') -- tokyonight-night | habamax
+            vim.cmd.hi 'Folded guibg=none'
         end,
     },
     {
-        'stevearc/oil.nvim',
-        dependencies = { "nvim-tree/nvim-web-devicons" },
-        opts = {
-            delete_to_trash = true,
-            skip_confirm_for_simple_edits = true
-        },
-        init = function()
-            vim.keymap.set('n', '-', ':Oil<CR>', { desc = 'Open Oil explorer' })
+        'echasnovski/mini.files',
+        version = '*',
+        config = function()
+            vim.keymap.set('n', '-', ':lua MiniFiles.open()<CR>', { desc = 'Open file explorer' })
+            require('mini.files').setup({
+                mappings = {
+                    go_in       = '<Right>',
+                    go_in_plus  = '<CR>',
+                    go_out      = '<Left>',
+                },
+                content = { prefix = function() end },
+            })
         end,
     },
-    -- {
-    --     'nvim-treesitter/nvim-treesitter',
-    --     build = ':TSUpdate',
-    --     main = 'nvim-treesitter.configs',
-    --     opts = {
-    --         ensure_installed = { 'odin' },
-    --         auto_install = false,
-    --         highlight = { enable = true },
-    --         indent = { enable = true },
-    --     },
-    -- },
+    {
+        'nvim-treesitter/nvim-treesitter',
+        build = ':TSUpdate',
+        branch = 'master',
+        lazy = false,
+        config = function()
+            require'nvim-treesitter.configs'.setup {
+                ensure_installed = { "odin" },
+                sync_install = false,
+                auto_install = false,
+                highlight = { enable = true },
+                indent = { enable = true },
+            }
+        end
+    },
     {
         'ThePrimeagen/harpoon',
         branch = 'harpoon2',
