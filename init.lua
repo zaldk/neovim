@@ -19,15 +19,15 @@ vim.opt.autoindent = true                          -- Copy indent from current l
 vim.opt.expandtab = true                           -- Use spaces instead of tabs
 vim.opt.shiftwidth = 4                             -- Indent width
 vim.opt.smartindent = true                         -- Smart auto-indenting
-vim.opt.softtabstop = 4                            -- Soft tab stop
-vim.opt.tabstop = 4                                -- Tab width
+vim.opt.softtabstop = 8                            -- Soft tab stop
+vim.opt.tabstop = 8                                -- Tab width
 vim.opt.hlsearch = false                           -- Don't highlight search results
 vim.opt.ignorecase = true                          -- Case insensitive search
 vim.opt.incsearch = true                           -- Show matches as you type
 vim.opt.smartcase = true                           -- Case sensitive if uppercase in search
 
-vim.opt.cmdheight = 2                              -- Command line height
-vim.opt.colorcolumn = '100'                        -- Show column at 100 characters
+vim.opt.cmdheight = 1                              -- Command line height
+vim.opt.colorcolumn = '80'                         -- Show column at 100 characters
 vim.opt.completeopt = 'menu,longest'           -- Completion options
 vim.opt.concealcursor = ''                         -- Don't hide cursor line markup
 vim.opt.conceallevel = 0                           -- Don't hide markup
@@ -96,22 +96,24 @@ vim.keymap.set('n', 'N', 'Nzzzv')
 vim.keymap.set('n', '<C-d>', '<C-d>zzzv')
 vim.keymap.set('n', '<C-u>', '<C-u>zzzv')
 
-vim.keymap.set({ 'n', 'v' }, 'x', '"_x', { desc = 'Delete without yanking' })
+vim.keymap.set({ 'n', 'v' }, 'x', '"_x')
 
 vim.keymap.set('n', '<A-n>', ':cnext<CR>')
 vim.keymap.set('n', '<A-N>', ':cprev<CR>')
 
-vim.keymap.set('n', '<A-j>', ':m .+1<CR>==', { desc = 'Move line down' })
-vim.keymap.set('n', '<A-k>', ':m .-2<CR>==', { desc = 'Move line up' })
-vim.keymap.set('v', '<A-j>', ":m '>+1<CR>gv=gv", { desc = 'Move selection down' })
-vim.keymap.set('v', '<A-k>', ":m '<-2<CR>gv=gv", { desc = 'Move selection up' })
+vim.keymap.set('n', '<A-j>', ':m .+1<CR>==')
+vim.keymap.set('n', '<A-k>', ':m .-2<CR>==')
+vim.keymap.set('v', '<A-j>', ":m '>+1<CR>gv=gv")
+vim.keymap.set('v', '<A-k>', ":m '<-2<CR>gv=gv")
 
-vim.keymap.set('v', '<', '<gv', { desc = 'Indent left and reselect' })
-vim.keymap.set('v', '>', '>gv', { desc = 'Indent right and reselect' })
+vim.keymap.set('v', '<', '<gv')
+vim.keymap.set('v', '>', '>gv')
 vim.keymap.set({'n','i','v','x'}, '<S-Up>',   '<Up>')
 vim.keymap.set({'n','i','v','x'}, '<S-Down>', '<Down>')
 
-vim.keymap.set('n', 'J', 'mzJ`z', { desc = 'Join lines and keep cursor position' })
+vim.keymap.set('n', 'J', 'mzJ`z')
+
+vim.keymap.set('t', '<ESC>', '<C-\\><C-N>')
 
 
 
@@ -132,29 +134,9 @@ vim.api.nvim_create_autocmd('BufReadPost', { -- Return to last edit position whe
     end,
 })
 
-vim.api.nvim_create_autocmd('TermClose', { -- Auto-close terminal when process exits
-    group = augroup,
-    callback = function()
-        if vim.v.event.status == 0 then
-            vim.api.nvim_buf_delete(0, {})
-        end
-    end,
-})
-
-vim.api.nvim_create_autocmd('TermOpen', { -- Disable line numbers in terminal
-    group = augroup,
-    callback = function()
-        vim.opt_local.number = false
-        vim.opt_local.relativenumber = false
-        vim.opt_local.signcolumn = 'no'
-    end,
-})
-
 vim.api.nvim_create_autocmd('VimResized', { -- Auto-resize splits when window is resized
     group = augroup,
-    callback = function()
-        vim.cmd('tabdo wincmd =')
-    end,
+    callback = function() vim.cmd('tabdo wincmd =') end,
 })
 
 vim.api.nvim_create_autocmd('BufWritePre', { -- Create directories when saving files
@@ -198,10 +180,16 @@ vim.cmd.colorscheme('tokyonight-night') -- habamax
 vim.cmd.hi 'Folded guibg=none'
 
 local function setup_lsp()
-    vim.lsp.enable({ 'lua_ls', 'bashls', 'ols', 'clangd', 'gopls' })
+    vim.lsp.enable({ 'lua_ls', 'bashls', 'ols', 'gopls' })
     vim.lsp.config('lua_ls', { settings = { Lua = { workspace = { library = vim.api.nvim_get_runtime_file('',true) }}} })
-end
-setup_lsp()
+
+    -- C is beyond lsp
+    vim.opt.tags:append('./tags;~/')
+    vim.api.nvim_create_autocmd('BufWritePost', {
+        pattern = '*.c,*.h,*.cpp,*.hpp',
+        command = 'silent exec "!ctags -R --kinds-c=+p --fields=+S --extras=+q ."'
+    })
+end setup_lsp()
 
 local function setup_mini_files()
     local MiniFiles = require('mini.files')
@@ -219,9 +207,19 @@ local function setup_mini_files()
             go_out      = '<Left>',
         },
         content = { prefix = function() end },
+        -- options = { use_as_default_explorer = false },
     })
-end
-setup_mini_files()
+    vim.api.nvim_create_autocmd('User', {
+        pattern = 'MiniFilesWindowUpdate',
+        callback = function(args)
+            local win_id = args.data.win_id
+            local config = vim.api.nvim_win_get_config(win_id)
+            config.row = 10
+            vim.api.nvim_win_set_config(win_id, config)
+        end,
+    })
+
+end setup_mini_files()
 
 local function setup_mini_pick()
     require('mini.pick').setup({})
@@ -230,12 +228,11 @@ local function setup_mini_pick()
     vim.keymap.set('n', '<leader>fg', ':Pick grep_live<CR>')
     vim.keymap.set('n', '<leader>fh', ':Pick help<CR>')
     vim.keymap.set('n', '<leader>fr', ':Pick resume<CR>')
-end
-setup_mini_pick()
+end setup_mini_pick()
 
 local function setup_treesitter()
     require('nvim-treesitter.configs').setup {
-        ensure_installed = { 'odin' },
+        ensure_installed = { 'odin', 'go' },
         sync_install = false,
         auto_install = false,
         highlight = { enable = true },
@@ -243,8 +240,7 @@ local function setup_treesitter()
         modules = {},
         ignore_install = {},
     }
-end
-setup_treesitter()
+end setup_treesitter()
 
 local function setup_harpoon()
     local harpoon = require('harpoon')
@@ -252,5 +248,4 @@ local function setup_harpoon()
     vim.keymap.set('n', '<leader>a', function() harpoon:list():add() end)
     vim.keymap.set('n', '<leader>m', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
     for i = 1, 9 do vim.keymap.set('n', '<A-'..i..'>', function() harpoon:list():select(i) end) end
-end
-setup_harpoon()
+end setup_harpoon()
