@@ -180,15 +180,16 @@ vim.cmd.colorscheme('tokyonight-night') -- habamax
 vim.cmd.hi 'Folded guibg=none'
 
 local function setup_lsp()
-    vim.lsp.enable({ 'lua_ls', 'bashls', 'ols', 'gopls' })
+    vim.lsp.enable({ 'lua_ls', 'bashls', 'ols', 'gopls', 'clangd' })
     vim.lsp.config('lua_ls', { settings = { Lua = { workspace = { library = vim.api.nvim_get_runtime_file('',true) }}} })
 
     -- C is beyond lsp
-    vim.opt.tags:append('./tags;~/')
-    vim.api.nvim_create_autocmd('BufWritePost', {
-        pattern = '*.c,*.h,*.cpp,*.hpp',
-        command = 'silent exec "!ctags -R --kinds-c=+p --fields=+S --extras=+q ."'
-    })
+    vim.diagnostic.enable(false)
+    -- vim.opt.tags:append('./tags;~/')
+    -- vim.api.nvim_create_autocmd('BufWritePost', {
+    --     pattern = '*.c,*.h,*.cpp,*.hpp',
+    --     command = 'silent exec "!ctags -R --kinds-c=+p --fields=+S --extras=+q ."'
+    -- })
 end setup_lsp()
 
 local function setup_mini_files()
