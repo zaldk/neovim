@@ -112,6 +112,7 @@ vim.keymap.set({'n','i','v','x'}, '<S-Up>',   '<Up>')
 vim.keymap.set({'n','i','v','x'}, '<S-Down>', '<Down>')
 
 vim.keymap.set('n', 'J', 'mzJ`z')
+vim.keymap.set('n', '<C-]>', '<C-]>zzzv')
 
 vim.keymap.set('t', '<ESC>', '<C-\\><C-N>')
 
@@ -168,16 +169,20 @@ vim.diagnostic.config({ severity_sort = true })
 
 vim.pack.add({
     'https://github.com/folke/tokyonight.nvim',
+    'https://github.com/blazkowolf/gruber-darker.nvim',
     'https://github.com/neovim/nvim-lspconfig',
-    'https://github.com/echasnovski/mini.files',
-    'https://github.com/echasnovski/mini.pick',
+    'https://github.com/stevearc/oil.nvim',
+    'https://github.com/nvim-telescope/telescope.nvim',
     'https://github.com/nvim-treesitter/nvim-treesitter',
     'https://github.com/nvim-lua/plenary.nvim',
+    'https://github.com/nvim-mini/mini.icons',
     { src = 'https://github.com/ThePrimeagen/harpoon', version = 'ed1f853847ffd04b2b61c314865665e1dadf22c7' },
 })
 
-vim.cmd.colorscheme('tokyonight-night') -- habamax
-vim.cmd.hi 'Folded guibg=none'
+local function setup_colorscheme()
+    vim.cmd.colorscheme('tokyonight-night') -- gruber-darker | habamax
+    vim.cmd.hi 'Folded guibg=none'
+end setup_colorscheme()
 
 local function setup_lsp()
     vim.lsp.enable({ 'lua_ls', 'bashls', 'ols', 'gopls', 'clangd' })
@@ -192,44 +197,44 @@ local function setup_lsp()
     -- })
 end setup_lsp()
 
-local function setup_mini_files()
-    local MiniFiles = require('mini.files')
-    vim.keymap.set('n', '-', function()
-        local buf_name = vim.api.nvim_buf_get_name(0)
-        local path = vim.fn.filereadable(buf_name) == 1 and buf_name or vim.fn.getcwd()
-        MiniFiles.open(path)
-        MiniFiles.reveal_cwd()
-    end, { desc = 'Open Mini Files' })
-    MiniFiles.setup({
-        mappings = {
-            close       = '<ESC>',
-            go_in       = '<Right>',
-            go_in_plus  = '<CR>',
-            go_out      = '<Left>',
+local function setup_mini_icons()
+    require('mini.icons').setup()
+end setup_mini_icons()
+
+local function setup_oil()
+    vim.keymap.set('n', '-', '<CMD>Oil<CR>')
+    require('oil').setup({
+        columns = {
+            "permissions",
+            "size",
+            -- "mtime",
+            "icon",
         },
-        content = { prefix = function() end },
-        -- options = { use_as_default_explorer = false },
+        -- buf_options = {
+        --     buflisted = false,
+        --     bufhidden = "hide",
+        -- },
+        delete_to_trash = true,
+        skip_confirm_for_simple_edits = false,
+        watch_for_changes = true,
+        view_options = {
+            show_hidden = true,
+        },
     })
-    vim.api.nvim_create_autocmd('User', {
-        pattern = 'MiniFilesWindowUpdate',
-        callback = function(args)
-            local win_id = args.data.win_id
-            local config = vim.api.nvim_win_get_config(win_id)
-            config.row = 10
-            vim.api.nvim_win_set_config(win_id, config)
-        end,
+end setup_oil()
+
+local function setup_telescope()
+    require('telescope').setup({
+        defaults = { mappings = { i = { ["<C-h>"] = "which_key" }}},
     })
-
-end setup_mini_files()
-
-local function setup_mini_pick()
-    require('mini.pick').setup({})
-    vim.keymap.set('n', '<leader>fb', ':Pick buffers<CR>')
-    vim.keymap.set('n', '<leader>ff', ':Pick files<CR>')
-    vim.keymap.set('n', '<leader>fg', ':Pick grep_live<CR>')
-    vim.keymap.set('n', '<leader>fh', ':Pick help<CR>')
-    vim.keymap.set('n', '<leader>fr', ':Pick resume<CR>')
-end setup_mini_pick()
+    local tb = require('telescope.builtin')
+    vim.keymap.set('n', '<leader>fb', tb.buffers)
+    vim.keymap.set('n', '<leader>ff', tb.find_files)
+    vim.keymap.set('n', '<leader>fg', tb.live_grep)
+    vim.keymap.set('n', '<leader>fh', tb.help_tags)
+    vim.keymap.set('n', '<leader>fr', tb.resume)
+    vim.keymap.set('n', '<leader>fd', tb.diagnostics)
+end setup_telescope()
 
 local function setup_treesitter()
     require('nvim-treesitter.configs').setup {
