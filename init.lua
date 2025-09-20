@@ -143,6 +143,10 @@ vim.api.nvim_create_autocmd('VimResized', { -- Auto-resize splits when window is
 vim.api.nvim_create_autocmd('BufWritePre', { -- Create directories when saving files
     group = augroup,
     callback = function()
+        -- Skip for Oil buffers or unnamed buffers
+        if vim.bo.filetype == "oil" or vim.api.nvim_buf_get_name(0) == "" then
+            return
+        end
         local dir = vim.fn.expand('<afile>:p:h')
         if vim.fn.isdirectory(dir) == 0 then
             vim.fn.mkdir(dir, 'p')
@@ -210,11 +214,7 @@ local function setup_oil()
             -- "mtime",
             "icon",
         },
-        -- buf_options = {
-        --     buflisted = false,
-        --     bufhidden = "hide",
-        -- },
-        delete_to_trash = true,
+        delete_to_trash = false,
         skip_confirm_for_simple_edits = false,
         watch_for_changes = true,
         view_options = {
