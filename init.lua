@@ -2,7 +2,6 @@
 vim.cmd.colorscheme('habamax')
 vim.cmd.hi 'Folded guibg=none ctermbg=none'
 
-
 vim.g.mapleader = ' '                              -- Set leader key to space
 vim.g.maplocalleader = ' '                         -- Set local leader key
 vim.g.netrw_banner = 0                             -- Do not show the banner
@@ -124,6 +123,14 @@ vim.api.nvim_create_autocmd('TextYankPost', { -- Highlight yanked text
     callback = function() vim.highlight.on_yank() end,
 })
 
+-- Set commentstring properly for gnuplot filetype
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "gnuplot",
+    callback = function()
+        vim.bo.commentstring = "# %s"
+    end
+})
+
 vim.api.nvim_create_autocmd('BufReadPost', { -- Return to last edit position when opening files
     group = augroup,
     callback = function()
@@ -173,13 +180,13 @@ vim.diagnostic.config({ severity_sort = true })
 
 vim.pack.add({
     'https://github.com/folke/tokyonight.nvim',
-    'https://github.com/blazkowolf/gruber-darker.nvim',
+    -- 'https://github.com/blazkowolf/gruber-darker.nvim',
     'https://github.com/neovim/nvim-lspconfig',
     'https://github.com/stevearc/oil.nvim',
     'https://github.com/nvim-telescope/telescope.nvim',
     'https://github.com/nvim-treesitter/nvim-treesitter',
     'https://github.com/nvim-lua/plenary.nvim',
-    'https://github.com/nvim-mini/mini.icons',
+    'https://github.com/nvim-tree/nvim-web-devicons',
     { src = 'https://github.com/ThePrimeagen/harpoon', version = 'ed1f853847ffd04b2b61c314865665e1dadf22c7' },
 })
 
@@ -201,9 +208,9 @@ local function setup_lsp()
     -- })
 end setup_lsp()
 
-local function setup_mini_icons()
-    require('mini.icons').setup()
-end setup_mini_icons()
+local function setup_devicons()
+    require('nvim-web-devicons').setup()
+end setup_devicons()
 
 local function setup_oil()
     vim.keymap.set('n', '-', '<CMD>Oil<CR>')
@@ -215,11 +222,9 @@ local function setup_oil()
             "icon",
         },
         delete_to_trash = false,
-        skip_confirm_for_simple_edits = false,
+        skip_confirm_for_simple_edits = true,
         watch_for_changes = true,
-        view_options = {
-            show_hidden = true,
-        },
+        view_options = { show_hidden = true },
     })
 end setup_oil()
 
