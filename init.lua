@@ -176,7 +176,10 @@ vim.api.nvim_create_autocmd('LspAttach', {
     end,
 })
 
-vim.diagnostic.config({ severity_sort = true })
+vim.diagnostic.config({
+    severity_sort = true,
+    underline = false,
+})
 
 vim.pack.add({
     'https://github.com/folke/tokyonight.nvim',
@@ -196,11 +199,11 @@ local function setup_colorscheme()
 end setup_colorscheme()
 
 local function setup_lsp()
-    vim.lsp.enable({ 'lua_ls', 'bashls', 'ols', 'gopls', 'clangd' })
+    vim.lsp.enable({ 'lua_ls', 'bashls', 'ols', 'gopls', 'clangd', 'serve_d' })
     vim.lsp.config('lua_ls', { settings = { Lua = { workspace = { library = vim.api.nvim_get_runtime_file('',true) }}} })
 
     -- C is beyond lsp
-    vim.diagnostic.enable(false)
+    -- vim.diagnostic.enable(false)
     -- vim.opt.tags:append('./tags;~/')
     -- vim.api.nvim_create_autocmd('BufWritePost', {
     --     pattern = '*.c,*.h,*.cpp,*.hpp',
