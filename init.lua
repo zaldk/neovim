@@ -25,7 +25,7 @@ vim.opt.ignorecase = true                          -- Case insensitive search
 vim.opt.incsearch = true                           -- Show matches as you type
 vim.opt.smartcase = true                           -- Case sensitive if uppercase in search
 
-vim.opt.cmdheight = 1                              -- Command line height
+vim.opt.cmdheight = 2                              -- Command line height
 vim.opt.colorcolumn = '80'                         -- Show column at 100 characters
 vim.opt.completeopt = 'menu,longest'           -- Completion options
 vim.opt.concealcursor = ''                         -- Don't hide cursor line markup
@@ -84,6 +84,8 @@ vim.opt.wildignore:append({ '*.o', '*.obj', '*.pyc', '*.class', '*.jar' })
 vim.opt.redrawtime = 10000
 vim.opt.maxmempattern = 20000
 
+vim.opt.langmap = 'ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNOPQRSTUVWXYZ,фисвуапршолдьтщзйкыегмцчня;abcdefghijklmnopqrstuvwxyz'
+
 
 
 vim.keymap.set('n', '<leader>w', ':w<CR>')
@@ -111,7 +113,9 @@ vim.keymap.set({'n','i','v','x'}, '<S-Up>',   '<Up>')
 vim.keymap.set({'n','i','v','x'}, '<S-Down>', '<Down>')
 
 vim.keymap.set('n', 'J', 'mzJ`z')
-vim.keymap.set('n', '<C-]>', '<C-]>zzzv')
+vim.keymap.set('n', '<C-]>', '<C-]>zvzz')
+vim.keymap.set('n', '<C-i>', '<C-i>zvzz')
+vim.keymap.set('n', '<C-o>', '<C-o>zvzz')
 
 vim.keymap.set('t', '<ESC>', '<C-\\><C-N>')
 
@@ -178,12 +182,14 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
 vim.diagnostic.config({
     severity_sort = true,
+    signs = true,
     underline = false,
 })
 
 vim.pack.add({
     'https://github.com/folke/tokyonight.nvim',
-    -- 'https://github.com/blazkowolf/gruber-darker.nvim',
+    'https://github.com/blazkowolf/gruber-darker.nvim',
+    'https://github.com/p00f/alabaster.nvim',
     'https://github.com/neovim/nvim-lspconfig',
     'https://github.com/stevearc/oil.nvim',
     'https://github.com/nvim-telescope/telescope.nvim',
@@ -199,8 +205,17 @@ local function setup_colorscheme()
 end setup_colorscheme()
 
 local function setup_lsp()
-    vim.lsp.enable({ 'lua_ls', 'bashls', 'ols', 'gopls', 'clangd', 'serve_d' })
+    vim.lsp.enable({ 'lua_ls', 'bashls', 'ols', 'gopls', 'clangd', 'serve_d', 'elp' })
     vim.lsp.config('lua_ls', { settings = { Lua = { workspace = { library = vim.api.nvim_get_runtime_file('',true) }}} })
+    vim.lsp.config('elp', {
+        settings = {
+            elp = {
+                diagnostics = {
+                    disabled = { "W0051" }
+                }
+            }
+        },
+    })
 
     -- C is beyond lsp
     -- vim.diagnostic.enable(false)
@@ -221,7 +236,7 @@ local function setup_oil()
         columns = {
             "permissions",
             "size",
-            -- "mtime",
+            "mtime",
             "icon",
         },
         delete_to_trash = false,
@@ -246,7 +261,7 @@ end setup_telescope()
 
 local function setup_treesitter()
     require('nvim-treesitter.configs').setup {
-        ensure_installed = { 'odin', 'go' },
+        ensure_installed = { 'odin', 'go', 'erlang' },
         sync_install = false,
         auto_install = false,
         highlight = { enable = true },
